@@ -1,0 +1,53 @@
+{% extends "layout/master.html" %}
+
+{% block content %}
+<div class="row" style="padding:10px;">
+    <div class="col-sm-12">
+        <table class="table">
+            <tr>
+                <th>
+                    Key Word
+                </th>
+                <th>
+                    Click Number
+                </th>
+            </tr>
+            {% for k in keywords  %}
+                <tr>
+                    <td>
+                        <a href="{% url 'commonLink:keyword_detail' k.id %}">{{ k.keyword }}</a>
+                    </td>
+                    <td>
+                        {{ k.click_number }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <nav style="text-align: center;">
+        <ul class="pagination">
+            {% if keywords.has_previous %}
+                <li>
+                    <a href="?page={{ keywords.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+            <li class="active">
+                <a href="javascript:;">
+                    {{ keywords.number }} of {{ keywords.paginator.num_pages }}
+                    <span class="sr-only">(current)</span>
+                </a>
+            </li>
+            {% if keywords.has_next %}
+                <li>
+                    <a href="?page={{ keywords.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

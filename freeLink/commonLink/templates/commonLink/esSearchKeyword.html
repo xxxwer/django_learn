@@ -1,0 +1,79 @@
+{% extends "layout/master.html" %}
+
+{% block content %}
+<style type="text/css">
+    .em {
+        color: red;
+    }
+</style>
+<div style="display: none;" id="jsonData">
+    {{ es_result }}
+</div>
+<div class="row" style="padding:10px;">
+    <div class="col-sm-12" id="listBox">
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+    (function () {
+        function listToString(list) {
+            var string = ''
+            for (var i in list) {
+                string = string + list[i]
+            }
+            return string
+        }
+
+        function removeHtml(body) {
+            var regex = /(<([^>]+)>)/ig
+            return body.replace(regex, "")
+        }
+
+        function basePage() {
+            var jsonString = $('#jsonData').text()
+            var es_result = JSON.parse(jsonString)
+            var text_html = ''
+            text_html = text_html+'<div>用时'+es_result.took+'ms</div><div>共搜索到 '+es_result.hits.total+'个结果</div>'
+
+            var items = es_result.hits.hits
+            var keyword = ''
+            var content = ''
+            var url = "{% url 'commonLink:keyword_detail' 0 %}"
+            url = url.substring(0,url.length-2)
+            console.log(url)
+            for (var i in items) {
+                if (items[i].highlight) {
+                    if (items[i].highlight.keyword) {
+                        keyword = listToString(items[i].highlight.keyword)
+                    } else {
+                        keyword = items[i]._source.keyword
+                    }
+
+                    if (items[i].highlight.content) {
+                        content = listToString(items[i].highlight.content)
+                    } else {
+                        content = items[i]._source.content
+                    }
+                } else {
+                    keyword = items[i]._source.keyword
+                    content = items[i]._source.content
+                }
+                text_html = text_html
+                    +'<div>'
+                    +'<a href='+url+items[i]._source.id_keyword+'>'+keyword+'</a>'
+                    +'<p>'+removeHtml(content)+'</p>'
+                    +'</div>'
+            }
+            $('#listBox').html(text_html)
+        }
+
+        function main() {
+            basePage()
+        }
+
+        main()
+    })()
+</script>
+{% endblock %}

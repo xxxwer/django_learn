@@ -1,0 +1,434 @@
+{% extends "layout/master.html" %}
+{% load poll_extras %}
+{% load static %}
+{% block content %}
+<style type="text/css">
+    .overflow-auto {
+        overflow: auto;
+    }
+    .margin-top-normal {
+        margin-top: 10px;
+    }
+
+    html, body, #editor {
+      margin: 0;
+      height: 100%;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      color: #333;
+    }
+
+    textarea, #editor div {
+        height: 100%;
+        vertical-align: top;
+        box-sizing: border-box;
+        padding: 15px;
+        word-wrap: break-word;
+    }
+
+    textarea {
+      border: none;
+      border-right: 1px solid #ccc;
+      resize: none;
+      outline: none;
+      background-color: #f6f6f6;
+      font-size: 14px;
+      font-family: 'Monaco', courier, monospace;
+      padding: 20px;
+    }
+
+    code {
+      color: #f66;
+    }
+</style>
+
+<script src="{% static "js/vue.js" %}"></script>
+<script src="{% static "js/lodash.js" %}"></script>
+<script src="{% static "js/marked.js" %}"></script>
+
+<div class="row" style="padding:10px;">
+    <div class="col-md-3">
+        <div class="panel panel-default">
+            <div class="panel-heading link_keyword_list_title">KeyWord</div>
+            <div class="panel-body overflow-auto">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#change_parent_keyword">修改父节点</button>
+                <hr>
+                <a href="{% url 'commonLink:keyword_detail' parent_keyword.id %}" class="btn btn-default btn-sm">
+                    {{ parent_keyword.keyword }}
+                </a>
+                <br>
+
+                {% for bk in brother_keyword %}
+                    {% if bk.id == keyword_content.keyword.id %}
+                        <a href="{% url 'commonLink:keyword_detail' bk.id %}" class="btn btn-success btn-xs">{{ bk.keyword }}</a><br>
+                    {% else %}
+                        <a href="{% url 'commonLink:keyword_detail' bk.id %}" class="btn btn-info btn-xs">{{ bk.keyword }}</a><br>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading link_keyword_list_title">Child KeyWord</div>
+            <div class="panel-body overflow-auto">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#add_child_keyword">增加子节点</button>
+                <hr>
+                {% for ck in child_keyword %}
+                    <a href="{% url 'commonLink:keyword_detail' ck.id %}" class="btn btn-info btn-xs">{{ ck.keyword }}</a><br>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading link_keyword_list_title">Extra Link</div>
+            <div class="panel-body overflow-auto">
+                <button type="button" class="btn btn-primary" data-target='#add_extra_link' data-toggle='modal'>增加其他链接</button>
+                <hr>
+                {% for id, k in extra_keyword.items %}
+                    <a href="{% url 'commonLink:keyword_detail' id %}" class="btn btn-info btn-xs">{{ k.keyword }}</a>
+                    <span>
+                        {{ k.extra_link.desc }}
+                    </span>
+                    <a href="javascript:;" style="color: red;" data-id_keyword_2="{{ id }}" class="del_extra_link_btn">删除</a>
+                    <br>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="col-md-12"><div class=" col-md-11 alert alert-info" id="operation_info"></div></div>
+        <form role="form" method="post" id="current_keyword_content_form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Key Word</label>
+                <label style="margin-left: 20px;"><a href="javascript:;" id="keyword_private_btn"></a></label>
+                <input type="text" class="form-control input_color" name="keyword" value="{{ keyword_content.keyword.keyword }}">
+                <input type="hidden" name="id_keyword" value="{{ keyword_content.keyword.id }}">
+            </div>
+            <div class="form-group">
+                <label>Content</label>
+                <div class="btn-group" data-toggle="buttons" style="margin: 10px;">
+                    <button type="button" class="btn btn-default" onclick="ld.ajaxUpdateKeywordContent()">Submit</button>
+                    <label class="btn btn-default" onclick="ld.showTextContent('all')">
+                        <input type="radio" name="options"> 1&2
+                    </label>
+                    <label class="btn btn-default" onclick="ld.showTextContent('textarea')">
+                        <input type="radio" name="options"> 1
+                    </label>
+                    <label class="btn btn-default" onclick="ld.showTextContent('div')">
+                        <input type="radio" name="options"> 2
+                    </label>
+                </div>
+                <div id="editor">
+                  <textarea :value="input" @input="update" rows="20" name="content" class="col-xs-12 col-md-6">{{ keyword_content.content.content }}</textarea>
+                  <div v-html="compiledMarkdown" class="col-xs-12 col-md-6"></div>
+                </div>
+
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="change_parent_keyword" tabindex="-1" role="dialog" aria-labelledby="changeParentKeywordLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="changeParentKeywordLabel">修改父节点</h4>
+            </div>
+            <div class="modal-body row">
+                <div class="col-xs-8">
+                    <input type="text" placeholder="输入关键字搜索父节点" class="form-control" id="updateParentSearchContent">
+                </div>
+                <div class="col-xs-4">
+                    <button class="btn btn-primary" id="updateParentSearchBtn">搜索</button>
+                </div>
+                <div class="col-xs-12 margin-top-normal" id="updateParentResultContent"></div>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="add_child_keyword" tabindex="-1" role="dialog" aria-labelledby="addChildKeywordLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="addChildKeywordLabel">增加子节点</h4>
+            </div>
+            <div class="modal-body row">
+                <div class="col-xs-12">
+                    <input type="text" placeholder="keyword" class="form-control" id="child_keyword">
+                </div>
+                <div class="col-xs-12 margin-top-normal">
+                    <textarea id="child_content" placeholder="content" class="form-control">null</textarea>
+                </div>
+                <div class="col-xs-12 margin-top-normal">
+                    <button class="btn btn-primary" id="add_child_keyword_btn">添加</button>
+                </div>
+                <div class="col-xs-12 margin-top-normal" id="search_result_content"></div>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="add_extra_link" tabindex="-1" role="dialog" aria-labelledby="addExtraLinkLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="addExtraLinkLabel">增加额外链接</h4>
+            </div>
+            <div class="modal-body row">
+                <div class="col-xs-8">
+                    <input type="text" placeholder="输入关键字搜索节点" class="form-control" id="addExtraLinkSearchContent">
+                </div>
+                <div class="col-xs-4">
+                    <button class="btn btn-primary" id="addExtraLinkSearchBtn">搜索</button>
+                </div>
+                <div class="col-xs-12" style="margin-top: 10px;">
+                    <input type="text" class="form-control" id="addExtraLinkDescInput" placeholder="额外说明">
+                </div>
+                <div class="col-xs-12" id="addExtraLinkResultContent" style="margin-top: 10px;"></div>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+function LinkDetail(addChildKeywordBtn, childKeyword, childContent)
+{
+    this.something = "使用 js 类进行编码";
+    this.id_keyword = "{{ keyword_content.keyword.id }}";
+    this.addChildKeywordBtn = addChildKeywordBtn;
+    this.childKeyword = childKeyword;
+    this.childContent = childContent;
+
+    this.pageData = JSON.parse(this.myJsonString('{{ page_data }}', 0));
+
+    this.typeUpdateParent = 'updateParent';
+    this.typeAddExtraLink = 'addExtraLink';
+
+    this.$keywordPrivateBtn = $('#keyword_private_btn');
+}
+
+LinkDetail.prototype.keywordPrivateShowStatus = function(){
+    var $btn = this.$keywordPrivateBtn
+    if (this.pageData.keyword_is_private === 0) {
+        $btn.text('状态：公开')
+    } else {
+        $btn.text('状态：私有')
+    }
+}
+
+LinkDetail.prototype.keywordPrivate = function(){
+    var $btn = this.$keywordPrivateBtn
+    var ldObj = this
+    $btn.on('click', function(e){
+        var r = confirm('确定修改 私有／公开状态 ？')
+        if (!r) {
+            return
+        }
+        var setPrivate = 0
+        if (ldObj.pageData.keyword_is_private === 0) {
+            setPrivate = 1
+        }
+        $.post("{% url 'commonLink:keyword_private' %}",
+            {id_keyword: ldObj.id_keyword, private: setPrivate},
+            function(result){
+                if (result.status != 'success') {
+                    alert(result.reason)
+                    console.log(result)
+                } else {
+                    ldObj.pageData.keyword_is_private = setPrivate
+                    ldObj.keywordPrivateShowStatus()
+                }
+            }
+        );
+    })
+}
+
+LinkDetail.prototype.ajaxSearchKeyword = function(searchContent, resultContent, type) {
+    var ldObj = this;
+    $.post("{% url 'commonLink:ajax_search_keyword' %}", {keyword: $(searchContent).val(), btnClass: type + "Btn"}, function(result){
+        if (result.status != 'success') {
+            alert(result.reason);
+            console.log(result);
+        } else {
+            $(resultContent).html(result.html);
+            if (type == ldObj.typeAddExtraLink) {
+                ldObj.attachAddExtraLinkEvent();
+            } else {
+                ldObj.attachUpdateParentKeywordEvent();
+            }
+        }
+    });
+}
+
+LinkDetail.prototype.ajaxUpdateKeywordParent = function(id_keyword, id_keyword_parent) {
+    $.post("{% url 'commonLink:ajax_update_parent_keyword' %}", {id_keyword: id_keyword, id_keyword_parent: id_keyword_parent}, function(result){
+        if (result.status != 'success') {
+            alert(result.reason);
+            console.error(result);
+        } else {
+            location.replace(location.href)
+        }
+    });
+}
+
+LinkDetail.prototype.ajaxAddExtraLink = function(id_keyword_1, id_keyword_2, desc) {
+    $.post("{% url 'commonLink:ajax_add_extra_link' %}", {id_keyword_1: id_keyword_1, id_keyword_2: id_keyword_2, desc: desc}, function(result){
+        if (result.status != 'success') {
+            alert(result.reason);
+            console.error(result);
+        } else {
+            location.replace(location.href)
+        }
+    });
+}
+
+LinkDetail.prototype.ajaxUpdateKeywordContent = function() {
+    $.post("{% url 'commonLink:update_keyword' %}",
+        $('#current_keyword_content_form').serialize(),
+        function(result){
+            if (result.status != 'success') {
+                alert(result.reason);
+                console.error(result);
+            } else {
+                $('#operation_info').text('更新成功 ' + (new Date()));
+            }
+        }
+    );
+}
+
+LinkDetail.prototype.attachAddExtraLinkEvent = function() {
+    var ldObj = this;
+    $('.' + ldObj.typeAddExtraLink + 'Btn').on('click', function () {
+        ldObj.ajaxAddExtraLink(ldObj.id_keyword, $(this).attr('data-id_keyword_parent'), $('#'+ldObj.typeAddExtraLink+'DescInput').val())
+    });
+}
+
+LinkDetail.prototype.attachUpdateParentKeywordEvent = function() {
+    var ldObj = this;
+    $('.'+ldObj.typeUpdateParent+'Btn').on('click', function () {
+        ldObj.ajaxUpdateKeywordParent(ldObj.id_keyword, $(this).attr('data-id_keyword_parent'))
+    });
+}
+
+LinkDetail.prototype.ajaxAddChildKeyword = function() {
+    var ldObj = this;
+    $.post("{% url 'commonLink:ajax_add_child_keyword' %}", {
+        keyword: $(ldObj.childKeyword).val(),
+        content: $(ldObj.childContent).val(),
+        id_keyword_parent: ldObj.id_keyword
+    }, function(result){
+        if (result.status != 'success') {
+            alert(result.reason);
+            console.log(result);
+        } else {
+            location.replace(result.new_keyword_url)
+        }
+    });
+}
+
+LinkDetail.prototype.ajaxDeleteExtraLink = function(id_keyword_2) {
+    var ldObj = this;
+    $.post("{% url 'commonLink:ajax_del_extra_link' %}", {
+        id_keyword_1: ldObj.id_keyword,
+        id_keyword_2: id_keyword_2
+    }, function(result){
+        if (result.status != 'success') {
+            alert(result.reason);
+            console.log(result);
+        } else {
+            location.replace(location.href)
+        }
+    });
+}
+
+LinkDetail.prototype.attachDeleteExtraLinkEvent = function() {
+    var ldObj = this;
+    $('.del_extra_link_btn').on('click', function(){
+        ldObj.ajaxDeleteExtraLink($(this).attr('data-id_keyword_2'))
+    });
+}
+
+LinkDetail.prototype.initialPage = function() {
+    var ldObj = this;
+    $('#'+ldObj.typeUpdateParent+'SearchBtn').on('click', function () {
+        ldObj.ajaxSearchKeyword(
+            '#'+ldObj.typeUpdateParent+'SearchContent',
+            '#'+ldObj.typeUpdateParent+'ResultContent',
+            ldObj.typeUpdateParent);
+    });
+    $(ldObj.addChildKeywordBtn).on('click', function() {
+        ldObj.ajaxAddChildKeyword();
+    });
+    $('#'+ldObj.typeAddExtraLink+'SearchBtn').on('click', function () {
+        ldObj.ajaxSearchKeyword(
+            '#'+ldObj.typeAddExtraLink+'SearchContent',
+            '#'+ldObj.typeAddExtraLink+'ResultContent',
+            ldObj.typeAddExtraLink);
+    });
+    ldObj.attachDeleteExtraLinkEvent();
+    ldObj.keywordPrivateShowStatus();
+    ldObj.keywordPrivate();
+}
+
+LinkDetail.prototype.showTextContent = function(type) {
+    var $textarea = $('#editor').children('textarea');
+    var $div = $('#editor').children('div');
+    if (type === 'all') {
+        $textarea.addClass('col-md-6');
+        $div.addClass('col-md-6');
+        $textarea.css('display', 'block');
+        $div.css('display', 'block');
+    }
+    else if (type === 'textarea') {
+        $textarea.removeClass('col-md-6');
+        $div.removeClass('col-md-6');
+        $textarea.css('display', 'block');
+        $div.css('display', 'none');
+    }
+    else if (type === 'div') {
+        $textarea.removeClass('col-md-6');
+        $div.removeClass('col-md-6');
+        $textarea.css('display', 'none');
+        $div.css('display', 'block');
+    }
+}
+
+LinkDetail.prototype.myJsonString = function(python_json_string, trim_num){
+    if (!trim_num && trim_num !== 0) {
+        trim_num = 1
+    }
+    var contentData = $("<div/>").html(python_json_string).text()
+    contentData = contentData.substr(trim_num, contentData.length - trim_num * 2)
+    return contentData
+}
+
+
+var ld = new LinkDetail("#add_child_keyword_btn", '#child_keyword', '#child_content');
+ld.initialPage()
+// 自动更新
+window.setInterval("ld.ajaxUpdateKeywordContent()", 30*1000);
+
+var contentData = ld.myJsonString('{{ keyword_content.content.content|toJsData }}');
+new Vue({
+  el: '#editor',
+  data: {
+    input: contentData
+  },
+  computed: {
+    compiledMarkdown: function () {
+      return marked(this.input, { sanitize: true })
+    }
+  },
+  methods: {
+    update: _.debounce(function (e) {
+      this.input = e.target.value
+    }, 300)
+  }
+})
+</script>
+{% endblock %}

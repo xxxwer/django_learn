@@ -1,0 +1,67 @@
+<html>
+    {% load static %}
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Infinite Link">
+        <meta name="keywords" content="">
+        <meta name="csrf-token" content="s2UbntvrrvQWpTYbbWERUGZ48VIkBV80iPaW0zAL">
+        <title>
+            free link (django)
+        </title>
+        <link rel="stylesheet" type="text/css" href="{% static "plugins/bootstrap/css/bootstrap-theme.min.css" %}">
+        <link rel="stylesheet" type="text/css" href="{% static "plugins/bootstrap/css/bootstrap.min.css" %}">
+    </head>
+
+    <body>
+
+        <div class="row">
+            <div style="height: calc(50% - 98px);"></div>
+            <div class="col-sm-4 col-sm-offset-4" style="padding-left: 100px;padding-right: 100px;">
+                <form method="post" action="{% url 'commonLink:my_do_login'%}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">User Name</label>
+                        <input type="text" class="form-control" name="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="exampleInputPassword1">Password</label>
+                        <input type="password" class="form-control" name="password">
+                    </div>
+                    <button type="submit" class="btn btn-default">Submit</button>
+                </form>
+            </div>
+        </div>
+
+    <script src="{% static "js/jquery-3.1.1.min.js" %}"></script>
+    <script src="{% static "plugins/bootstrap/js/bootstrap.min.js" %}"></script>
+    <script type="text/javascript">
+
+    setTopBarBtn();
+
+    function setTopBarBtn(){
+        var url = window.location.href;
+        url = url.split('/');
+        var str = '/' + url[3];
+        var a_obj = $('#navbar_001').find('a[href="'+ str +'"]');
+
+        var li_obj = a_obj.parent();
+        var dropdown_obj = li_obj.parent().parent();
+
+        if (dropdown_obj.attr('class') == 'dropdown' ) {
+            dropdown_obj.attr('class', 'dropdown active');
+        }
+
+        li_obj.attr('class', 'active');
+
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+        });
+
+    }
+    </script>
+    </body>
+</html>
+
+

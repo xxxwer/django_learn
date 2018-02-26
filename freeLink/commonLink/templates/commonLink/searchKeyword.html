@@ -1,0 +1,28 @@
+{% extends "layout/master.html" %}
+
+{% block content %}
+<div class="row" style="padding:10px;">
+    <div class="col-sm-12">
+        <table class="table">
+            <tr>
+                <th>
+                    Key Word
+                </th>
+                <th>
+                    Click Number
+                </th>
+            </tr>
+            {% for k in keywords  %}
+                <tr>
+                    <td>
+                        <a href="{% url 'commonLink:keyword_detail' k.id %}">{{ k.keyword }}</a>
+                    </td>
+                    <td>
+                        {{ k.click_number }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% for k in keywords %}
+    <p class="bg-info">
+        <a href="{% url 'commonLink:keyword_detail' k.id %}" target="blank">{{ k.keyword }}</a>
+        <a href="javascript:;" style="color: red;" class="{{ btnClass }}" data-id_keyword_parent="{{ k.id }}">修改</a>
+    </p>
+{% endfor %}

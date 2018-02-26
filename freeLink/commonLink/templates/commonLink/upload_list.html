@@ -1,0 +1,73 @@
+{% extends "layout/master.html" %}
+{% load poll_extras %}
+{% load static %}
+{% block content %}
+
+<div class="row" style="padding:10px;">
+    <form action="{% url 'commonLink:upload_file' %}" method="post" enctype="multipart/form-data" class="form-inline col-sm-12">
+        {% csrf_token %}
+        <div class="form-group">
+            <p>{{ form.non_field_errors }}</p>
+            <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
+            <p>
+                {{ form.docfile.errors }}
+                {{ form.docfile }}
+            </p>
+        </div>
+        <div class="form-group">
+            <input type="submit" value="Upload" />
+        </div>
+    </form>
+
+    {% if documents %}
+    <div class="col-sm-12">
+        <table class="table">
+            <tr>
+                <th>
+                    file list
+                </th>
+            </tr>
+            {% for document in documents %}
+                <tr>
+                    <td>
+                        <a href="{{ document.docfile.url }}">{{ document.docfile.name }}</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% else %}
+        <p>No documents.</p>
+    {% endif %}
+
+    <nav style="text-align: center;">
+        <ul class="pagination">
+            {% if documents.has_previous %}
+                <li>
+                    <a href="?page={{ documents.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+            <li class="active">
+                <a href="javascript:;">
+                    {{ documents.number }} of {{ documents.paginator.num_pages }}
+                    <span class="sr-only">(current)</span>
+                </a>
+            </li>
+            {% if documents.has_next %}
+                <li>
+                    <a href="?page={{ documents.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+
+{% endblock %}
+
+{% block script %}
+
+{% endblock %}
