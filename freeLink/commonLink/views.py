@@ -49,7 +49,7 @@ def detail(request, id_keyword):
         keywordContentRepo.countKeywordClick(data['keyword_content']['keyword'])
         return render(request, 'commonLink/linkDetail.html', data)
     except Exception as e:
-        return error.show_error_1(request, e)
+        return error.show_error_html(request, e)
 
 
 @login_required
@@ -64,8 +64,8 @@ def detail_update(request):
         # return redirect(reverse('commonLink:keyword_detail', args=(id_keyword,)))
         return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
     except Exception as e:
-        # return error.show_error_1(request, e)
-        return error.show_error_2(request, e)
+        # return error.show_error_html(request, e)
+        return error.show_error_json(request, e)
 
 
 @login_required
@@ -80,7 +80,7 @@ def ajax_search_keyword(request):
 
         return HttpResponse(json.dumps({'status': 'success', 'html': view_string}), content_type="application/json")
     except Exception as e:
-        return error.show_error_2(request, e)
+        return error.show_error_json(request, e)
 
 
 @login_required
@@ -93,7 +93,7 @@ def ajax_update_parent(request):
         keywordContentRepo.update_keyword_keyword(id_keyword_parent, id_keyword)
         return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
     except Exception as e:
-        return error.show_error_2(request, e)
+        return error.show_error_json(request, e)
 
 
 @login_required
@@ -113,7 +113,7 @@ def ajax_add_child(request):
         new_keyword_url = reverse('commonLink:keyword_detail', args=(keyword_obj.id,))
         return HttpResponse(json.dumps({'status': 'success', 'new_keyword_url': new_keyword_url}), content_type="application/json")
     except Exception as e:
-        return error.show_error_2(request, e)
+        return error.show_error_json(request, e)
 
 
 @login_required
@@ -127,7 +127,7 @@ def ajax_add_extra_link(request):
         keywordContentRepo.add_extra_keyword(id_keyword_1, id_keyword_2, desc)
         return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
     except Exception as e:
-        return error.show_error_2(request, e)
+        return error.show_error_json(request, e)
 
 
 @login_required
@@ -138,7 +138,7 @@ def delete_extra_link(request):
         keywordContentRepo.del_extra_keyword(id_keyword_1, id_keyword_2)
         return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
     except Exception as e:
-        return error.show_error_2(request, e)
+        return error.show_error_json(request, e)
 
 
 @login_required
@@ -149,7 +149,7 @@ def search_keyword(request):
         keywords = keywordContentRepo.search_keyword(request.POST.get('keyword', None))
         return render(request, 'commonLink/searchKeyword.html', {'keywords': keywords})
     except Exception as e:
-        return error.show_error_1(request, e)
+        return error.show_error_html(request, e)
 
 
 @login_required
@@ -192,4 +192,4 @@ def keyword_private(request):
         keywordContentRepo.setKeywordPrivate(request.POST.get('id_keyword', None), request.POST.get('private', 0))
         return HttpResponse(json.dumps({'status': 'success'}), content_type="application/json")
     except Exception as e:
-        return error.show_error_2(request, e)
+        return error.show_error_json(request, e)

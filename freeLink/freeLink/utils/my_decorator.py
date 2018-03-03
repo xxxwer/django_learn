@@ -17,9 +17,9 @@ def request_method_assert(method, response_type = 'html'):
 
 def return_method_check_fail(request, response_type, method):
     if response_type == 'html':
-        return error.show_error_1(request, Exception({'type': '请求参数错误', 'reason': '必须使用 '+ method +' 请求'}))
+        return error.show_error_html(request, Exception({'type': '请求参数错误', 'reason': '必须使用 '+ method +' 请求'}))
     else:
-        return error.show_error_2(request, Exception({'type': '请求参数错误', 'reason': '必须使用 '+ method +' 请求'}))
+        return error.show_error_json(request, Exception({'type': '请求参数错误', 'reason': '必须使用 '+ method +' 请求'}))
 
 if __name__ == '__main__':
     pass

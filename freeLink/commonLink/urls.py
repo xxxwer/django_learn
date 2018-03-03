@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url
 from . import views
-from commonLink.controller import es, other, login
+from commonLink.controller import es, other, login, api
 from django.contrib.auth.decorators import login_required
 
 urlpatterns = [
@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^ajax/add_extra_link/$', views.ajax_add_extra_link, name='ajax_add_extra_link'),
     url(r'^ajax/del_extra_link/$', views.delete_extra_link, name='ajax_del_extra_link'),
     url(r'^search/keywordlist/$', views.search_keyword, name='search_keyword'),
+
     # 设置私人 标记
     url(r'^ajax/set_keyword_private/$', views.keyword_private, name='keyword_private'),
     # free link 的 es操作
@@ -41,5 +42,10 @@ urlpatterns = [
     url(r'^upload_file/$', views.list_upload, name='upload_file'),
     # 登录
     url(r'^my_do_login/$', login.do_login, name='my_do_login'),
-    url(r'^my_do_logout/$', login.do_logout, name='my_do_logout')
+    url(r'^my_do_logout/$', login.do_logout, name='my_do_logout'),
+
+    # api 数据
+    url(r'^api/ranking/list/$', api.rankingList, name='api_rankingList'),
+    url(r'^api/keyword/detail/$', api.keywordDetail, name='api_keywordDetail'),
+    url(r'^api/keyword/search/$', api.search_keyword, name='api_searchkeyword')
 ]

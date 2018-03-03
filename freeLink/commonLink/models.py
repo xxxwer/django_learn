@@ -29,6 +29,13 @@ class keyword(models.Model):
 
         super().save(*args,**kwargs)
 
+    def getFields(self):
+        return [x.attname for x in self._meta.fields]
+
+    def to_dict(self):
+        data = {k: getattr(self, k) for k in self.getFields()}
+        return data
+
 
 class content(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -44,6 +51,13 @@ class content(models.Model):
             self.created_at = time()
         self.updated_at = time()
         super().save(*args,**kwargs)
+
+    def getFields(self):
+        return [x.attname for x in self._meta.fields]
+
+    def to_dict(self):
+        data = {k: getattr(self, k) for k in self.getFields()}
+        return data
 
 
 class keywordContent(models.Model):
@@ -65,6 +79,13 @@ class keywordContent(models.Model):
         self.updated_at = time()
         super().save(*args,**kwargs)
 
+    def getFields(self):
+        return [x.attname for x in self._meta.fields]
+
+    def to_dict(self):
+        data = {k: getattr(self, k) for k in self.getFields()}
+        return data
+
 
 class keywordkeyword(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -84,6 +105,13 @@ class keywordkeyword(models.Model):
             self.created_at = time()
         self.updated_at = time()
         super().save(*args,**kwargs)
+
+    def getFields(self):
+        return [x.attname for x in self._meta.fields]
+
+    def to_dict(self):
+        data = {k: getattr(self, k) for k in self.getFields()}
+        return data
 
 
 class keywordExtraLink(models.Model):
@@ -105,4 +133,11 @@ class keywordExtraLink(models.Model):
             self.created_at = time()
         self.updated_at = time()
         super().save(*args,**kwargs)
+
+    def getFields(self):
+        return [x.attname for x in self._meta.fields]
+
+    def to_dict(self):
+        data = {k: getattr(self, k) for k in self.getFields()}
+        return data
 

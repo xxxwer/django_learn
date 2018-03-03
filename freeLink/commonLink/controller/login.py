@@ -20,7 +20,7 @@ def do_login(request):
         login(request, user)
         return redirect(reverse('commonLink:keyword_list'))
     else:
-        return error.show_error_1(request, Exception({'type': '登录失败', 'reason': '用户不存在或者密码错误'}))
+        return error.show_error_html(request, Exception({'type': '登录失败', 'reason': '用户不存在或者密码错误'}))
 
 def login_page(request):
     if request.user.is_authenticated:

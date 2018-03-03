@@ -24,4 +24,4 @@ def search_keyword(request):
         es_result = kcEs.searchKeyword(request.POST.get('keyword', None))
         return render(request, 'commonLink/esSearchKeyword.html', {'es_result': json.dumps(es_result)})
     except Exception as e:
-        return error.show_error_1(request, e)
+        return error.show_error_html(request, e)
