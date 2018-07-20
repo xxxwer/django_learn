@@ -16,9 +16,11 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 from commonLink.controller import login
+from django.urls import include, path
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^cl/', include(('commonLink.urls', 'commonLink'), namespace='commonLink')),
-    url(r'^$', login.login_page, name='my_login_page')
+    url(r'^$', login.login_page, name='my_login_page'),
+    path('todolist/', include('todoListServer.urls'))
 ]
